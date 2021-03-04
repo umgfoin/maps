@@ -60,6 +60,7 @@ import FavoritesController from './favoritesController';
 import NonLocalizedPhotosController from './nonLocalizedPhotosController';
 import PhotosController from './photosController';
 import TracksController from './tracksController';
+import MyMapsController from './myMapsController';
 
 import { brify, getUrlParameter, formatAddress } from './utils';
 
@@ -91,6 +92,7 @@ import { brify, getUrlParameter, formatAddress } from './utils';
     };
 
     var optionsController = {
+        myMapId: null,
         nbRouters: 0,
         optionValues: {},
         enabledFavoriteCategories: [],
@@ -98,8 +100,18 @@ import { brify, getUrlParameter, formatAddress } from './utils';
         enabledTracks: [],
         enabledDevices: [],
         enabledDeviceLines: [],
+        saveMapBounds: function(e) {
+            var bounds = mapController.map.getBounds();
+            optionsController.saveOptionValues({
+                mapBounds: bounds.getNorth() + ';' +
+                            bounds.getSouth() + ';' +
+                            bounds.getEast() + ';' +
+                            bounds.getWest()
+            });
+        },
         saveOptionValues: function (optionValues) {
             var req = {
+                myMapId: this.myMapId,
                 options: optionValues
             };
             var url = generateUrl('/apps/maps/saveOptionValue');
@@ -119,7 +131,9 @@ import { brify, getUrlParameter, formatAddress } from './utils';
         restoreOptions: function () {
             var that = this;
             var url = generateUrl('/apps/maps/getOptionsValues');
-            var req = {};
+            var req = {
+                myMapId: this.myMapId
+            };
             var optionsValues = {};
             $.ajax({
                 type: 'POST',
@@ -219,6 +233,7 @@ import { brify, getUrlParameter, formatAddress } from './utils';
                     mapController.changeTileLayer(mapController.defaultStreetLayer);
                 }
                 if (optionsValues.hasOwnProperty('mapBounds')) {
+                    mapController.map.off('moveend', optionsController.saveMapBounds);
                     var nsew = optionsValues.mapBounds.split(';');
                     if (nsew.length === 4) {
                         var n = parseFloat(nsew[0]);
@@ -232,6 +247,7 @@ import { brify, getUrlParameter, formatAddress } from './utils';
                             ]);
                         }
                     }
+                    mapController.map.on('moveend', optionsController.saveMapBounds);
                 }
                 if (!optionsValues.hasOwnProperty('photosLayer') || optionsValues.photosLayer === 'true') {
                     photosController.toggleLayer();
@@ -304,6 +320,9 @@ import { brify, getUrlParameter, formatAddress } from './utils';
                 }
                 if (!optionsValues.hasOwnProperty('devicesEnabled') || optionsValues.devicesEnabled === 'true') {
                     devicesController.toggleDevices();
+                }
+                if (!optionsValues.hasOwnProperty('myMapsEnabled') || optionsValues.myMapsEnabled === 'true') {
+                    myMapsController.toggleMyMaps();
                 }
                 if (optionsValues.hasOwnProperty('trackMe') && optionsValues.trackMe === 'true') {
                     $('#track-me').prop('checked', true);
@@ -2096,6 +2115,7 @@ import { brify, getUrlParameter, formatAddress } from './utils';
     var favoritesController = new FavoritesController(optionsController, timeFilterController);
     var tracksController = new TracksController(optionsController, timeFilterController);
     var devicesController = new DevicesController(optionsController, timeFilterController);
+    var myMapsController = new MyMapsController(optionsController, favoritesController, photosController, tracksController)
 
     timeFilterController.connect();
 

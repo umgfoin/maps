@@ -398,6 +398,7 @@ export default {
 		this.getFavorites()
 		this.getTracks()
 		this.getDevices()
+		this.getMyMaps()
 		if (optionsController.optionValues.trackMe === 'true') {
 			this.sendPositionLoop()
 		}
@@ -1378,9 +1379,25 @@ export default {
 		},
 		onToggleDeviceHistory(device) {
 		},
+		// MyMaps
+		getMyMaps() {
+			if (!this.myMapsEnabled) {
+				return
+			}
+			this.myMapsLoading = true
+			network.getMyMaps().then((response) => {
+				this.myMaps = response.data
+			}).catch((error) => {
+				console.error(error)
+			}).then(() => {
+				this.myMapsLoading = false
+			})
+		},
 		onMyMapsClicked(myMaps) {
 		},
 		onMyMapClicked(myMap) {
+		},
+		onAddMyMap() {
 		},
 		onChangeMyMapColor(myMap) {
 		},

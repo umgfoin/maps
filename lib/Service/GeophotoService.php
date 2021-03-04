@@ -14,11 +14,11 @@ namespace OCA\Maps\Service;
 
 use OCP\Files\FileInfo;
 use OCP\IL10N;
-use OCP\Files\IRootFolder;
 use OCP\Files\Storage\IStorage;
 use OCP\Files\Folder;
 use OCP\IPreview;
 use OCP\ILogger;
+use OCP\Files\IRootFolder;
 
 
 use OCA\Maps\Service\PhotofilesService;
@@ -30,43 +30,43 @@ use OCA\Maps\Service\DevicesService;
 class GeophotoService {
 
     private $l10n;
-    private $root;
     private $photoMapper;
     private $logger;
     private $preview;
     private $tracksService;
     private $timeorderedPointSets;
     private $devicesService;
+    private $userfolder;
 
     public function __construct (ILogger $logger,
-                                 IRootFolder $root,
                                  IL10N $l10n,
+                                 IRootFolder $root,
                                  GeophotoMapper $photoMapper,
                                  IPreview $preview,
                                  TracksService $tracksService,
-                                 DevicesService $devicesService,
-                                 $userId) {
-        $this->root = $root;
+                                 DevicesService $devicesService) {
         $this->l10n = $l10n;
         $this->photoMapper = $photoMapper;
         $this->logger = $logger;
         $this->preview = $preview;
         $this->tracksService = $tracksService;
         $this->timeorderedPointSets = null;
-        $this->userId = $userId;
+        $this->root = $root;
         $this->devicesService = $devicesService;
-
     }
 
     /**
      * @param string $userId
+     * @param Folder|null $folder
      * @return array with geodatas of all photos
      */
-     public function getAllFromDB($userId) {
+     public function getAllFromDB($userId, $folder=null) {
         $photoEntities = $this->photoMapper->findAll($userId);
-        $userFolder = $this->getFolderForUser($userId);
+        if (is_null($folder)) {
+            $folder = $this->getFolderForUser($userId);
+        }
         $filesById = [];
-        $cache = $userFolder->getStorage()->getCache();
+        $cache = $folder->getStorage()->getCache();
         $previewEnableMimetypes = $this->getPreviewEnabledMimetypes();
         foreach ($photoEntities as $photoEntity) {
             $cacheEntry = $cache->get($photoEntity->getFileId());
@@ -74,7 +74,7 @@ class GeophotoService {
                 // this path is relative to owner's storage
                 //$path = $cacheEntry->getPath();
                 // but we want it relative to current user's storage
-                $files = $userFolder->getById($photoEntity->getFileId());
+                $files = $folder->getById($photoEntity->getFileId());
 				if (empty($files)) {
 					continue;
 				}
@@ -82,8 +82,8 @@ class GeophotoService {
                 if ($file === null) {
                     continue;
                 }
-				$path = $userFolder->getRelativePath( $file->getPath());
-				$isRoot = $file === $userFolder;
+				$path = $folder->getRelativePath($file->getPath());
+				$isRoot = $file === $folder;
 
 				$file_object = new \stdClass();
                 $file_object->fileId = $photoEntity->getFileId();
@@ -288,13 +288,7 @@ class GeophotoService {
      * @return Folder
      */
     private function getFolderForUser ($userId) {
-        $path = '/' . $userId . '/files';
-        if ($this->root->nodeExists($path)) {
-            $folder = $this->root->get($path);
-        } else {
-            $folder = $this->root->newFolder($path);
-        }
-        return $folder;
+        return $this->root->getUserFolder($userId);
     }
 
 }

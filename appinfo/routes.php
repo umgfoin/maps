@@ -10,6 +10,7 @@
 return [
     'routes' => [
         ['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
+        ['name' => 'page#indexMyMap', 'url' => '/m/{myMapId}', 'verb' => 'GET'],
         ['name' => 'page#do_echo', 'url' => '/echo', 'verb' => 'POST'],
         ['name' => 'page#openGeoLink', 'url' => '/openGeoLink/{url}', 'verb' => 'GET'],
         ['name' => 'public_page#sharedFavoritesCategory', 'url' => '/s/favorites/{token}', 'verb' => 'GET'],
@@ -104,5 +105,10 @@ return [
         ['name' => 'devices#exportDevices', 'url' => '/export/devices', 'verb' => 'POST'],
         ['name' => 'devices#importDevices', 'url' => '/import/devices', 'verb' => 'POST'],
 
+        //MyMaps
+        ['name' => 'my_maps#getMyMaps', 'url' => '/maps', 'verb' => 'GET'],
+        ['name' => 'my_maps#addMyMap' , 'url' => '/maps', 'verb' => 'POST'],
+        ['name' => 'my_maps#updateMyMap' , 'url' => '/maps/{id}', 'verb' => 'PUT'],
+        ['name' => 'my_maps#deleteMyMap' , 'url' => '/maps/{id}', 'verb' => 'DELETE'],
     ]
 ];

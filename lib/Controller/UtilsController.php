@@ -11,7 +11,10 @@
 
 namespace OCA\Maps\Controller;
 
+use League\Flysystem\FileNotFoundException;
+use OCP\Files\NotFoundException;
 use OCP\App\IAppManager;
+use OCP\IServerContainer;
 
 use OCP\IURLGenerator;
 use OCP\IConfig;
@@ -24,21 +27,27 @@ use OCP\AppFramework\Http\ContentSecurityPolicy;
 use OCP\IRequest;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Controller;
+use PhpParser\JsonDecoder;
 
 class UtilsController extends Controller {
 
 
     private $userId;
     private $config;
+    private $userfolder;
     private $dbtype;
 
     public function __construct($AppName,
+                                IServerContainer $serverContainer,
                                 IRequest $request,
                                 IConfig $config,
                                 IAppManager $appManager,
                                 $UserId){
         parent::__construct($AppName, $request);
         $this->userId = $UserId;
+        if ($UserId !== '' and $UserId !== null and $serverContainer !== null){
+            $this->userfolder = $serverContainer->getUserFolder($UserId);
+        }
         // IConfig object
         $this->config = $config;
     }
@@ -59,9 +68,25 @@ class UtilsController extends Controller {
      * Save options values to the DB for current user
      * @NoAdminRequired
      */
-    public function saveOptionValue($options) {
-        foreach ($options as $key => $value) {
-            $this->config->setUserValue($this->userId, 'maps', $key, $value);
+    public function saveOptionValue($options, $myMapId=null) {
+        if( is_null($myMapId) || $myMapId==="") {
+            foreach ($options as $key => $value) {
+                $this->config->setUserValue($this->userId, 'maps', $key, $value);
+            }
+        } else {
+            $folders = $this->userfolder->getById($myMapId);
+            $folder = array_shift($folders);
+            try {
+                $file=$folder->get(".maps");
+            } catch (NotFoundException $e) {
+                $file=$folder->newFile(".maps", $content = "{}");
+            }
+            $ov = json_decode($file->getContent(),true, 512);
+            foreach ($options as $key => $value) {
+                $ov[$key] = $value;
+            }
+            $file->putContent(json_encode($ov, JSON_PRETTY_PRINT));
+
         }
         return new DataResponse(['done'=>1]);
     }
@@ -70,14 +95,25 @@ class UtilsController extends Controller {
      * get options values from the config for current user
      * @NoAdminRequired
      */
-    public function getOptionsValues() {
+    public function getOptionsValues($myMapId=null) {
         $ov = array();
 
-        // get all user values
-        $keys = $this->config->getUserKeys($this->userId, 'maps');
-        foreach ($keys as $key) {
-            $value = $this->config->getUserValue($this->userId, 'maps', $key);
-            $ov[$key] = $value;
+        if( is_null($myMapId) || $myMapId==="") {
+            // get all user values
+            $keys = $this->config->getUserKeys($this->userId, 'maps');
+            foreach ($keys as $key) {
+                $value = $this->config->getUserValue($this->userId, 'maps', $key);
+                $ov[$key] = $value;
+            }
+        } else {
+            $folders = $this->userfolder->getById($myMapId);
+            $folder = array_shift($folders);
+            try {
+                $file=$folder->get(".maps");
+            } catch (NotFoundException $e) {
+                $file=$folder->newFile(".maps", $content = "{}");
+            }
+            $ov = json_decode($file->getContent(),true, 512);
         }
 
         // get routing-specific admin settings values

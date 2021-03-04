@@ -1,6 +1,6 @@
-import {generateUrl} from '@nextcloud/router';
+import { generateUrl } from '@nextcloud/router';
 
-import {basename} from './utils';
+import { basename } from './utils';
 
 import escapeHTML from 'escape-html';
 
@@ -469,7 +469,7 @@ PhotosController.prototype = {
         var lng = e.latlng.lng;
         var filePath = this.photosController.movingPhotoPath;
         this.photosController.leaveMovePhotoMode();
-        this.photosController.placePhotos([filePath], [lat], [lng]);
+        this.photosController.placePhotos([filePath], [lat], [lng], false, true);
     },
 
     updateTimeFilterRange: function () {
@@ -530,6 +530,9 @@ PhotosController.prototype = {
             url: generateUrl('apps/maps/photos'),
             type: 'GET',
             async: true,
+            data: {
+                myMapId: this.optionsController.myMapId
+            },
             context: this
         }).done(function (response) {
             if (response.length == 0) {
@@ -562,7 +565,10 @@ PhotosController.prototype = {
 
     contextPlacePhotosOrFolder: function (e) {
         var that = this.photosController;
-        OC.dialogs.confirmDestructive(
+        // forbid folder placement in my-maps
+        if (that.optionsController.myMapId !== null) {
+            that.contextPlacePhotos(e);
+        } else {OC.dialogs.confirmDestructive(
             '',
             t('maps', 'What do you want to place?'),
             {
@@ -579,7 +585,7 @@ PhotosController.prototype = {
                 }
             },
             true
-        );
+        );}
     },
 
     contextPlacePhotos: function (e) {
@@ -613,7 +619,7 @@ PhotosController.prototype = {
         );
     },
 
-    placePhotos: function (paths, lats, lngs, directory = false) {
+    placePhotos: function (paths, lats, lngs, directory = false, moveAction=false) {
         var that = this;
         $('#navigation-photos').addClass('icon-loading-small');
         $('.leaflet-container, .mapboxgl-map').css('cursor', 'wait');
@@ -621,6 +627,10 @@ PhotosController.prototype = {
             paths: paths,
             lats: lats,
             lngs: lngs,
+            myMapId: this.optionsController.myMapId,
+            // we only have relative paths for photos displayed on a 'my-map'
+            // so we tell it to the controller
+            relative: (this.optionsController.myMapId !== null && moveAction),
             directory: directory
         };
         var url = generateUrl('/apps/maps/photos');
@@ -659,7 +669,8 @@ PhotosController.prototype = {
         $('#navigation-photos').addClass('icon-loading-small');
         $('.leaflet-container, .mapboxgl-map').css('cursor', 'wait');
         var req = {
-            paths: paths
+            paths: paths,
+            myMapId: this.optionsController.myMapId,
         };
         var url = generateUrl('/apps/maps/photos');
         $.ajax({

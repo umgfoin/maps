@@ -12,12 +12,15 @@
 namespace OCA\Maps\AppInfo;
 
 
-use OCA\Maps\DB\FavoriteShareMapper;
-use \OCP\AppFramework\App;
 use \OCP\IServerContainer;
 use OCA\Maps\Hooks\FileHooks;
 use OCA\Maps\Service\PhotofilesService;
 use OCA\Maps\Service\TracksService;
+use \OCP\AppFramework\App;
+use OCP\BackgroundJob\IJobList;
+use OCP\IDBConnection;
+use OCP\IPreview;
+use OCP\Share\IManager;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 

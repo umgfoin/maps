@@ -293,3 +293,8 @@ export function editDevice(id, name, color) {
 	const url = generateUrl('/apps/maps/devices/' + id)
 	return axios.put(url, req)
 }
+
+export function getMyMaps() {
+	const url = generateUrl('/apps/maps/maps')
+	return axios.get(url)
+}
