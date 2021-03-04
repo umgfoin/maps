@@ -69,6 +69,7 @@
 					:enabled="myMapsEnabled"
 					:loading="myMapsLoading"
 					:my-maps="myMaps"
+					@add="onAddMyMap"
 					@rename="onRenameMyMap"
 					@delete="onDeleteMyMap"
 					@color="onChangeMyMapColor"
@@ -1386,6 +1387,12 @@ export default {
 			}
 			this.myMapsLoading = true
 			network.getMyMaps().then((response) => {
+				this.myMaps = response.data.map((myMap) => {
+					return {
+					    ...myMap,
+						enabled: this.myMapId === myMap.id,
+					}
+				})
 				this.myMaps = response.data
 			}).catch((error) => {
 				console.error(error)
@@ -1397,7 +1404,8 @@ export default {
 		},
 		onMyMapClicked(myMap) {
 		},
-		onAddMyMap() {
+		onAddMyMap(name) {
+		    network.addMyMap(name)
 		},
 		onChangeMyMapColor(myMap) {
 		},
