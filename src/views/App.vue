@@ -64,6 +64,16 @@
 					@color="onChangeDeviceColor"
 					@device-clicked="onDeviceClicked"
 					@devices-clicked="onDevicesClicked" />
+				<AppNavigationMyMapsItem
+					ref="myMapsNavigation"
+					:enabled="myMapsEnabled"
+					:loading="myMapsLoading"
+					:my-maps="myMaps"
+					@rename="onRenameMyMap"
+					@delete="onDeleteMyMap"
+					@color="onChangeMyMapColor"
+					@myMap-clicked="onMyMapClicked"
+					@myMaps-clicked="onMyMapsClicked" />
 			</template>
 		</MapsNavigation>
 		<AppContent>
@@ -147,6 +157,7 @@ import AppNavigationPhotosItem from '../components/AppNavigationPhotosItem'
 import AppNavigationContactsItem from '../components/AppNavigationContactsItem'
 import AppNavigationTracksItem from '../components/AppNavigationTracksItem'
 import AppNavigationDevicesItem from '../components/AppNavigationDevicesItem'
+import AppNavigationMyMapsItem from '../components/AppNavigationMyMapsItem'
 import optionsController from '../optionsController'
 import { getLetterColor, hslToRgb, Timer, getDeviceInfoFromUserAgent2, isComputer, isPhone } from '../utils'
 import { poiSearchData } from '../utils/poiData'
@@ -172,6 +183,7 @@ export default {
 		AppNavigationContactsItem,
 		AppNavigationTracksItem,
 		AppNavigationDevicesItem,
+		AppNavigationMyMapsItem,
 	},
 
 	data() {
@@ -215,6 +227,11 @@ export default {
 			devicesLoading: false,
 			devices: [],
 			devicesEnabled: optionsController.devicesEnabled,
+			// myMaps
+			myMapsLoading: false,
+			myMaps: [],
+			myMapsEnabled: optionsController.myMapsEnabled,
+			myMapId: optionsController.myMapId,
 		}
 	},
 
@@ -1360,6 +1377,16 @@ export default {
 		onDeleteDevice(device) {
 		},
 		onToggleDeviceHistory(device) {
+		},
+		onMyMapsClicked(myMaps) {
+		},
+		onMyMapClicked(myMap) {
+		},
+		onChangeMyMapColor(myMap) {
+		},
+		onRenameMyMap(myMap) {
+		},
+		onDeleteMyMap(myMap) {
 		},
 	},
 }
