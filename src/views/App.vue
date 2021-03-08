@@ -81,6 +81,8 @@
 			<div id="app-content-wrapper">
 				<Map
 					ref="map"
+					:active-layer-id-prop="activeLayerId"
+					:map-bounds-prop="mapBounds"
 					:search-data="searchData"
 					:routing-search-data="routingSearchData"
 					:favorites="displayedFavorites"
@@ -189,6 +191,9 @@ export default {
 
 	data() {
 		return {
+		    // Map Options
+		    activeLayerId: optionsController.tileLayer,
+			mapBounds: optionsController.bounds,
 			optionValues: optionsController.optionValues,
 			sendPositionTimer: null,
 			showSidebar: false,
@@ -1438,6 +1443,11 @@ export default {
 		loadMap(myMap) {
 			this.myMapId = myMap.id
 			optionsController.myMapId = myMap.id
+			const that = this
+			optionsController.restoreOptions(function() {
+				that.activeLayerId = optionsController.tileLayer
+				that.mapBounds = optionsController.bounds
+			})
 			// fixme set new tilelayer and mapbounds in the map component
 			let newurl
 			if (this.myMapId === null) {
